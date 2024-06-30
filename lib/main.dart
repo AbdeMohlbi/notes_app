@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'notes_ui.dart';
+
 void main() {
   runApp(const TodoApp());
 }
@@ -15,22 +17,24 @@ class TodoApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
       ),
-      home: const TodoListScreen(),
+      home: const AppScreen(),
     );
   }
 }
 
-class TodoListScreen extends StatefulWidget {
-  const TodoListScreen({super.key});
+class AppScreen extends StatefulWidget {
+  const AppScreen({super.key});
 
   @override
-  TodoListScreenState createState() => TodoListScreenState();
+  AppScreenState createState() => AppScreenState();
 }
 
-class TodoListScreenState extends State<TodoListScreen> {
-  List<(String, String)> _todos = [];
-  List<bool> selectedItems = [];
-  Future<void> fetchData() async {}
+class AppScreenState extends State<AppScreen> {
+  final _pageController = PageController(
+    initialPage: 0,
+    viewportFraction: 1.0,
+    keepPage: true,
+  );
   void _addTodo() {
     final TextEditingController titleController = TextEditingController();
     final TextEditingController descriptionController = TextEditingController();
@@ -72,10 +76,10 @@ class TodoListScreenState extends State<TodoListScreen> {
                 child: const Text('Add'),
                 onPressed: () {
                   setState(() {
-                    _todos.add((
-                      titleController.text,
-                      descriptionController.text,
-                    ));
+                    // _todos.add((
+                    //   titleController.text,
+                    //   descriptionController.text,
+                    // ));
                   });
                   Navigator.of(context).pop();
                 })
@@ -86,106 +90,98 @@ class TodoListScreenState extends State<TodoListScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    fetchData();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black87,
-      extendBody: false,
-      appBar: AppBar(
-        actions: [
-          Row(
+        backgroundColor: Colors.black87,
+        extendBody: false,
+        appBar: AppBar(
+          title: Row(
             mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              IconButton(onPressed: () {}, icon: const Icon(Icons.add)),
-              IconButton(onPressed: () {}, icon: const Icon(Icons.add)),
-              IconButton(onPressed: () {}, icon: const Icon(Icons.add)),
-              IconButton(onPressed: () {}, icon: const Icon(Icons.add)),
+              IconButton(
+                onPressed: () {
+                  _pageController.page != 0
+                      ? _pageController.animateToPage(0,
+                          duration: const Duration(seconds: 1),
+                          curve: Curves.bounceIn)
+                      : null;
+                },
+                icon: const Icon(
+                  Icons.space_dashboard_outlined,
+                  color: Colors.white,
+                ),
+              ),
+              const Spacer(),
+              IconButton(
+                  onPressed: () {
+                    _pageController.page != 1
+                        ? _pageController.animateToPage(1,
+                            duration: const Duration(seconds: 1),
+                            curve: Curves.bounceIn)
+                        : null;
+                  },
+                  icon: const Icon(
+                    Icons.done_all_outlined,
+                    color: Colors.orange,
+                  )),
+              const Spacer(),
+              IconButton(
+                  onPressed: () {
+                    _pageController.page != 2
+                        ? _pageController.animateToPage(2,
+                            duration: const Duration(seconds: 1),
+                            curve: Curves.bounceIn)
+                        : null;
+                  },
+                  icon: const Icon(
+                    Icons.settings_rounded,
+                    color: Colors.white,
+                  )),
             ],
           ),
-        ],
-        backgroundColor: Colors.black,
-        elevation: 20,
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          TextField(
-            decoration: InputDecoration(
-              hintText: 'Enter text',
-              filled: true,
-              fillColor: Colors.grey.shade200,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30.0),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding:
-                  const EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
-            ),
-          ),
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-              itemCount: _todos.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  key: Key('$index'),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0)),
-                  leading: Checkbox(
-                    value: selectedItems[index],
-                    onChanged: (bool? value) {},
-                  ),
-                  selected: selectedItems[index],
-                  onTap: () {
-                    setState(() {
-                      selectedItems[index] = !selectedItems[index];
-                    });
-                  },
-                  title: Text(
-                    _todos[index].$1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                  subtitle: Text(
-                    _todos[index].$2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  tileColor: Colors.grey.withOpacity(0.6),
-                );
-              },
-              separatorBuilder: (BuildContext context, int index) {
-                return const Divider();
-              },
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        shape: const CircleBorder(),
-        backgroundColor: Colors.orange,
-        onPressed: _addTodo
-        // await DatabaseHelper.addNote(("somthing bad", "somthing worst"));
-        // print(await DatabaseHelper.fetchAllNotes());
-        // print(await DatabaseHelper.updateNote((11, "new", "new ")));
-        // print(await DatabaseHelper.fetchAllNotes());
-        // print(await DatabaseHelper.deleteOneNote(1));
-        // await DatabaseHelper.fetchAllNotes();
-        // print(await DatabaseHelper.deleteAllNotes());
-        // await DatabaseHelper.fetchAllNotes();
-        ,
-        child: const Icon(
-          Icons.add,
-          color: Colors.white,
+          backgroundColor: Colors.black,
+          elevation: 20,
         ),
-      ),
-    );
+        body: PageView(
+            // physics: NeverScrollableScrollPhysics(),
+            controller: _pageController,
+            scrollDirection: Axis.horizontal,
+            pageSnapping: true,
+            children: [
+              const TodoListScreen(),
+              Container(
+                color: Colors.red,
+                child: const Center(
+                  child: Text(
+                    'RED PAGE',
+                    style: TextStyle(
+                      fontSize: 45,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                color: Colors.blue,
+                child: const Center(
+                  child: Text(
+                    'Settings',
+                    style: TextStyle(
+                      fontSize: 45,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ]),
+        floatingActionButton: FloatingActionButton(
+          shape: const CircleBorder(),
+          backgroundColor: Colors.orange,
+          onPressed: _addTodo,
+          child: const Icon(
+            Icons.add,
+            color: Colors.white,
+          ),
+        ));
   }
 }

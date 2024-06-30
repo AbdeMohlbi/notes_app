@@ -26,6 +26,7 @@ class DatabaseHelper {
     "TITLE" TEXT NOT NULL,
     "DESCRIPTION" TEXT NOT NULL,
     "LASTUPDATE" TEXT NOT NULL DEFAULT (DATE('now')),
+    "Done" INTEGER NOT NULL DEFAULT 0
     PRIMARY KEY("ID" AUTOINCREMENT)
     );""");
   }
