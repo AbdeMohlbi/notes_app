@@ -1,4 +1,3 @@
-import 'package:basic_todo/database_helper.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -29,31 +28,9 @@ class TodoListScreen extends StatefulWidget {
 }
 
 class TodoListScreenState extends State<TodoListScreen> {
-  final List<(String, String)> _todos = [
-    ('a', 'a'),
-    ('a', 'a'),
-    ('a', 'a'),
-    ('a', 'a'),
-    ('a', 'a'),
-    ('a', 'a'),
-    ('a', 'a'),
-    ('a', 'a'),
-    ('a', 'a'),
-    ('a', 'a'),
-  ];
-  List<bool> selectedItems = [
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-  ];
-
+  List<(String, String)> _todos = [];
+  List<bool> selectedItems = [];
+  Future<void> fetchData() async {}
   void _addTodo() {
     final TextEditingController titleController = TextEditingController();
     final TextEditingController descriptionController = TextEditingController();
@@ -109,6 +86,12 @@ class TodoListScreenState extends State<TodoListScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    fetchData();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black87,
@@ -117,13 +100,12 @@ class TodoListScreenState extends State<TodoListScreen> {
         actions: [
           Row(
             mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              IconButton(onPressed: () {}, icon: Icon(Icons.add)),
-              IconButton(onPressed: () {}, icon: Icon(Icons.add)),
-              IconButton(onPressed: () {}, icon: Icon(Icons.add)),
-              IconButton(onPressed: () {}, icon: Icon(Icons.add)),
+              IconButton(onPressed: () {}, icon: const Icon(Icons.add)),
+              IconButton(onPressed: () {}, icon: const Icon(Icons.add)),
+              IconButton(onPressed: () {}, icon: const Icon(Icons.add)),
+              IconButton(onPressed: () {}, icon: const Icon(Icons.add)),
             ],
           ),
         ],
@@ -150,7 +132,7 @@ class TodoListScreenState extends State<TodoListScreen> {
           ),
           Expanded(
             child: ListView.separated(
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
               itemCount: _todos.length,
               itemBuilder: (context, index) {
                 return ListTile(
@@ -170,7 +152,7 @@ class TodoListScreenState extends State<TodoListScreen> {
                   title: Text(
                     _todos[index].$1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: Colors.red),
+                    style: const TextStyle(color: Colors.red),
                   ),
                   subtitle: Text(
                     _todos[index].$2,
@@ -180,7 +162,7 @@ class TodoListScreenState extends State<TodoListScreen> {
                 );
               },
               separatorBuilder: (BuildContext context, int index) {
-                return Divider();
+                return const Divider();
               },
             ),
           ),
@@ -189,11 +171,16 @@ class TodoListScreenState extends State<TodoListScreen> {
       floatingActionButton: FloatingActionButton(
         shape: const CircleBorder(),
         backgroundColor: Colors.orange,
-        onPressed: () async {
-          await Ccc().addNote(("somthing bad", "somthing worst"));
-          await Ccc().fetchAll();
-          print("gg");
-        },
+        onPressed: _addTodo
+        // await DatabaseHelper.addNote(("somthing bad", "somthing worst"));
+        // print(await DatabaseHelper.fetchAllNotes());
+        // print(await DatabaseHelper.updateNote((11, "new", "new ")));
+        // print(await DatabaseHelper.fetchAllNotes());
+        // print(await DatabaseHelper.deleteOneNote(1));
+        // await DatabaseHelper.fetchAllNotes();
+        // print(await DatabaseHelper.deleteAllNotes());
+        // await DatabaseHelper.fetchAllNotes();
+        ,
         child: const Icon(
           Icons.add,
           color: Colors.white,

@@ -2,57 +2,74 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
-  static const int _version = 1;
+  static const int _version = 2;
   static const String _dbName = "Notes.db";
-  Database? _database;
+  static Database? _db;
 
-  Future<Database> get database async {
-    return _database ?? await _initialize();
+  static Future<Database> get database async {
+    return _db ?? await _initialize();
   }
 
-  Future<String> get fullPath async {
-    final path = await getDatabasesPath();
-    return join(path, _dbName);
-  }
-
-  Future<Database> _initialize() async {
-    final path = await fullPath;
+  static Future<Database> _initialize() async {
+    final path = join(await getDatabasesPath(), _dbName);
     Database database = await openDatabase(path,
-        version: _version, onCreate: create, singleInstance: true);
+        version: _version, onCreate: createTable, singleInstance: true);
     return database;
   }
 
-  Future<void> create(Database database, int version) async {
-    await Ccc().createTable(database);
-  }
-}
-
-class Ccc {
-  final tableName = 'NOTES';
-  Future<void> createTable(Database database) async {
+  static const notesTable = 'NOTES';
+  static Future<void> createTable(Database database, int version) async {
     await database.execute("""
-    CREATE TABLE IF NOT EXISTS $tableName
+    CREATE TABLE IF NOT EXISTS $notesTable
     (
     "ID" INTEGER NOT NULL,
     "TITLE" TEXT NOT NULL,
     "DESCRIPTION" TEXT NOT NULL,
-    "LASTUPDATE" INTEGER NOT NULL DEFAULT (cast(str('%s','now') as int)),
+    "LASTUPDATE" TEXT NOT NULL DEFAULT (DATE('now')),
     PRIMARY KEY("ID" AUTOINCREMENT)
     );""");
   }
 
-  Future<int> addNote((String, String) record) async {
-    final database = await DatabaseHelper().database;
-    return await database.rawInsert('''
-  INSERT INTO $tableName (TITLE,DESCRIPTION,LASTUPDATE) VAlUES (?,?,?)
-    ''', [record.$1, record.$2, DateTime.now().millisecondsSinceEpoch]);
+  static Future<int> addNote((String, String) record) async {
+    final db = await database;
+    return await db.rawInsert('''
+  INSERT INTO $notesTable (TITLE,DESCRIPTION,LASTUPDATE) VAlUES (?,?,?)
+    ''', [record.$1, record.$2, DateTime.now().toIso8601String()]);
   }
 
-  Future<void> fetchAll() async {
-    final database = await DatabaseHelper().database;
-    final notes = await database.rawQuery('''
-    SELECT * FROM $tableName ORDER BY COALESCE (LASTUPDATE,TITLE)
+  static Future<List<Map<String, Object?>>> fetchAllNotes() async {
+    _db = await database;
+    final notes = await _db!.rawQuery('''
+    SELECT * FROM $notesTable ORDER BY COALESCE (LASTUPDATE,TITLE)
     ''');
-    print(notes);
+    return notes;
+  }
+
+  static Future<int> deleteOneNote(int id) async {
+    _db = await database;
+    return await _db!.delete(
+      notesTable,
+      where: "id = ?",
+      whereArgs: [id],
+    );
+  }
+
+  static Future<int> deleteAllNotes() async {
+    _db = await database;
+    return await _db!.delete(notesTable);
+  }
+
+  static Future<int> updateNote((int, String, String) record) async {
+    _db = await database;
+    return await _db!.update(
+      notesTable,
+      {
+        "TITLE": record.$2,
+        "DESCRIPTION": record.$3,
+        "LASTUPDATE": DateTime.now().toIso8601String()
+      },
+      where: "id = ?",
+      whereArgs: [record.$1],
+    );
   }
 }
